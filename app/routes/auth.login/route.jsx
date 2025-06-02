@@ -16,25 +16,32 @@ import { loginErrorMessage } from "./error.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
-export const loader = async ({ request }) => {
-  const errors = loginErrorMessage(await login(request));
-
-  return { errors, polarisTranslations };
+// Remove login from loader
+export const loader = async () => {
+  return { polarisTranslations };
 };
 
 export const action = async ({ request }) => {
-  const errors = loginErrorMessage(await login(request));
+  const formData = await request.formData();
+  const shop = formData.get("shop");
+
+  const result = await login(request); // Your custom login logic
+
+  if (result.success) {
+    return redirect(`/app?shop=${encodeURIComponent(shop)}`);
+  }
 
   return {
-    errors,
+    errors: loginErrorMessage(result),
   };
 };
+
 
 export default function Auth() {
   const loaderData = useLoaderData();
   const actionData = useActionData();
   const [shop, setShop] = useState("");
-  const { errors } = actionData || loaderData;
+  const errors = actionData?.errors || {};
 
   return (
     <PolarisAppProvider i18n={loaderData.polarisTranslations}>
@@ -42,9 +49,7 @@ export default function Auth() {
         <Card>
           <Form method="post">
             <FormLayout>
-              <Text variant="headingMd" as="h2">
-                Log in
-              </Text>
+              <Text variant="headingMd" as="h2">Log in</Text>
               <TextField
                 type="text"
                 name="shop"
@@ -53,7 +58,7 @@ export default function Auth() {
                 value={shop}
                 onChange={setShop}
                 autoComplete="on"
-                error={errors.shop}
+                error={errors?.shop}
               />
               <Button submit>Log in</Button>
             </FormLayout>

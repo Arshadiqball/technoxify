@@ -32,7 +32,7 @@ export default function AppLayout() {
             items={[
               {
                 label: "Product List",
-                onClick: () => navigate("/products"), // coming soon
+                onClick: () => navigate("/products"),
               },
             ]}
           />
